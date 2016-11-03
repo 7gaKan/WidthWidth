@@ -25,5 +25,15 @@
     // Dispose of any resources that can be recreated.
 }
 
+//支持旋转
+-(BOOL)shouldAutorotate{
+    return YES;
+}
+
+//支持的方向 因为界面A我们只需要支持竖屏
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
+    return UIInterfaceOrientationMaskPortrait;
+}
+
 
 @end
