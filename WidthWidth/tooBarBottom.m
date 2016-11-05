@@ -20,16 +20,19 @@
 - (void)layout {
     self.alpha = 0.1;
     //添加view
-//    UIView *fontView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 200, 100)];
-//    fontView.backgroundColor = [UIColor redColor];
-//    [self addSubview:fontView];
-//    fontView.alpha = 1;
-//    NSLog(@"width:%f",self.frame.size.width);
-//    UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(hideImage:)];
-//    [fontView addGestureRecognizer: tap];
+//    CGFloat start = self.frame.size.width / 2;
+//    NSLog(@"%f",start);
+//    UILabel *lb = [[UILabel alloc] initWithFrame:CGRectMake(start, 0, 100, 50)];
+//    lb.backgroundColor = [UIColor redColor];
+//    [self addSubview:lb];
+//    UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(showImage:)];
+//    [lb addGestureRecognizer: tap];
 //    self.userInteractionEnabled = YES;
+//    lb.userInteractionEnabled = YES;
 }
-- (void)hideImage:(UITapGestureRecognizer*)tap{
+
+- (void)showImage:(UITapGestureRecognizer*)tap{
     NSLog(@"ok");
+    NSLog(@"3888%f,%f,%f,%f",self.frame.origin.x,self.frame.origin.y,self.frame.size.width,self.frame.size.height);
 }
 @end

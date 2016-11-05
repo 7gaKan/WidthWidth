@@ -20,4 +20,7 @@
 - (void)layout {
     self.alpha = 0.4;
 }
+- (void)layoutSubviews {
+    
+}
 @end

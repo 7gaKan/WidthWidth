@@ -27,6 +27,8 @@
 		730056B41DC9D64D001631E8 /* NSLayoutConstraint+MASDebugAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 730056A61DC9D64D001631E8 /* NSLayoutConstraint+MASDebugAdditions.m */; };
 		730056B51DC9D64D001631E8 /* View+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 730056A81DC9D64D001631E8 /* View+MASAdditions.m */; };
 		730056B61DC9D64D001631E8 /* ViewController+MASAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 730056AB1DC9D64D001631E8 /* ViewController+MASAdditions.m */; };
+		7304D3771DCE045D00A17A2C /* FontView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7304D3761DCE045D00A17A2C /* FontView.m */; };
+		7304D37A1DCE093600A17A2C /* previewLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7304D3791DCE093600A17A2C /* previewLayer.m */; };
 		73FED4571DCAC7E800C0BDA8 /* toolBarBaseView.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED4561DCAC7E800C0BDA8 /* toolBarBaseView.m */; };
 		73FED45A1DCAC80300C0BDA8 /* toolBarTop.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED4591DCAC80300C0BDA8 /* toolBarTop.m */; };
 		73FED45D1DCAC81200C0BDA8 /* tooBarBottom.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED45C1DCAC81200C0BDA8 /* tooBarBottom.m */; };
@@ -97,6 +99,10 @@
 		730056A91DC9D64D001631E8 /* View+MASShorthandAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "View+MASShorthandAdditions.h"; sourceTree = "<group>"; };
 		730056AA1DC9D64D001631E8 /* ViewController+MASAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ViewController+MASAdditions.h"; sourceTree = "<group>"; };
 		730056AB1DC9D64D001631E8 /* ViewController+MASAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ViewController+MASAdditions.m"; sourceTree = "<group>"; };
+		7304D3751DCE045D00A17A2C /* FontView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontView.h; sourceTree = "<group>"; };
+		7304D3761DCE045D00A17A2C /* FontView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FontView.m; sourceTree = "<group>"; };
+		7304D3781DCE093600A17A2C /* previewLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = previewLayer.h; sourceTree = "<group>"; };
+		7304D3791DCE093600A17A2C /* previewLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = previewLayer.m; sourceTree = "<group>"; };
 		73FED4551DCAC7E800C0BDA8 /* toolBarBaseView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = toolBarBaseView.h; sourceTree = "<group>"; };
 		73FED4561DCAC7E800C0BDA8 /* toolBarBaseView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = toolBarBaseView.m; sourceTree = "<group>"; };
 		73FED4581DCAC80300C0BDA8 /* toolBarTop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = toolBarTop.h; sourceTree = "<group>"; };
@@ -248,6 +254,8 @@
 				73FED44E1DCAC3DF00C0BDA8 /* View */,
 				7300568B1DC9C6FF001631E8 /* SecondViewController.h */,
 				7300568C1DC9C6FF001631E8 /* SecondViewController.m */,
+				7304D3781DCE093600A17A2C /* previewLayer.h */,
+				7304D3791DCE093600A17A2C /* previewLayer.m */,
 			);
 			name = SecondPage;
 			sourceTree = "<group>";
@@ -265,6 +273,8 @@
 				73FED45F1DCAC81E00C0BDA8 /* toolBarLeft.m */,
 				73FED4611DCAC82E00C0BDA8 /* toolBarRight.h */,
 				73FED4621DCAC82E00C0BDA8 /* toolBarRight.m */,
+				7304D3751DCE045D00A17A2C /* FontView.h */,
+				7304D3761DCE045D00A17A2C /* FontView.m */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -430,10 +440,12 @@
 				730056B11DC9D64D001631E8 /* MASViewAttribute.m in Sources */,
 				730056AF1DC9D64D001631E8 /* MASConstraintMaker.m in Sources */,
 				73FED4601DCAC81E00C0BDA8 /* toolBarLeft.m in Sources */,
+				7304D3771DCE045D00A17A2C /* FontView.m in Sources */,
 				73FED45A1DCAC80300C0BDA8 /* toolBarTop.m in Sources */,
 				730056B31DC9D64D001631E8 /* NSArray+MASAdditions.m in Sources */,
 				73FED45D1DCAC81200C0BDA8 /* tooBarBottom.m in Sources */,
 				730056B61DC9D64D001631E8 /* ViewController+MASAdditions.m in Sources */,
+				7304D37A1DCE093600A17A2C /* previewLayer.m in Sources */,
 				730056AE1DC9D64D001631E8 /* MASConstraint.m in Sources */,
 				730056B01DC9D64D001631E8 /* MASLayoutConstraint.m in Sources */,
 				7300565A1DC9C4A9001631E8 /* main.m in Sources */,

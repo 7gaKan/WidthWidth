@@ -7,15 +7,27 @@
 //
 
 #import "SecondViewController.h"
-#import "Masonry.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AssetsLibrary/AssetsLibrary.h>
+#import "FontView.h"
 #define kMainScreenWidth [UIScreen mainScreen].bounds.size.width
 #define kMainScreenHeight  [UIScreen mainScreen].bounds.size.height
-
+static CGRect oldframe;
 @interface SecondViewController () {
     NSArray *_toolBarArray;
     toolBarBaseView *_base;
+//    UIView *fontView;
+    toolBarBaseView *toolBarTop;
+    toolBarBaseView *toolBarLeft;
+    toolBarBaseView *toolBarRight;
+    toolBarBaseView *toolBarBottom;
+    FontView *fontView;
+    //点击小视图次数
+    int _tapCount;
+    //添加个后视图
+    UIView *backgroundView;
+    //添加个临时预览层
+    AVCaptureVideoPreviewLayer *tempPreviewLayer;
 }
 @property (nonatomic, strong) AVCaptureSession* session;
 /**
@@ -37,8 +49,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    self.view.backgroundColor = [UIColor grayColor];
     //照相机
     [self createCama];
+    oldframe = self.previewLayer.frame;
     // 创建4个toolbar
     [self toolBarCreate];
     
@@ -46,55 +60,74 @@
     
 }
 - (void)toolBarCreate {
+    //创建4个toolBar
     _toolBarArray = @[@"toolBarTop",@"toolBarLeft",@"tooBarBottom",@"toolBarRight"];
-    toolBarBaseView *toolBarTop = [[NSClassFromString(_toolBarArray[0]) alloc] init];
-    toolBarBaseView *toolBarLeft = [[NSClassFromString(_toolBarArray[1]) alloc] init];
-    toolBarBaseView *toolBarBottom = [[NSClassFromString(_toolBarArray[2]) alloc] init];
-    toolBarBaseView *toolBarRight = [[NSClassFromString(_toolBarArray[3]) alloc] init];
-//    toolBarBaseView *base = [[toolBarBaseView alloc] init];
-    UIView *fontView = [[UIView alloc] init];
-    fontView.backgroundColor = [UIColor blueColor];
-    [toolBarTop mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.height.equalTo(@50);
-        make.width.equalTo([NSNumber numberWithFloat:kMainScreenHeight]);
-        make.top.equalTo(self.view);
-        [self.view addSubview:toolBarTop];
-    }];
-    [toolBarLeft mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.height.equalTo([NSNumber numberWithFloat:kMainScreenWidth - 150]);
-        make.width.equalTo(@50);
-        make.top.equalTo(toolBarTop.mas_bottom);
-        [self.view addSubview:toolBarLeft];
-    }];
-    [toolBarBottom mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.height.equalTo(@100);
-        make.width.equalTo(toolBarTop.mas_width);
-        make.top.equalTo(toolBarLeft.mas_bottom);
-        [self.view addSubview:toolBarBottom];
-    }];
-    [toolBarRight mas_makeConstraints:^(MASConstraintMaker *make) {
-        
-        make.height.equalTo(toolBarLeft.mas_height);
-        make.width.equalTo(toolBarLeft.mas_width);
-        make.top.equalTo(toolBarTop.mas_bottom);
-        make.right.equalTo(self.view.mas_right);
-        [self.view addSubview:toolBarRight];
-    }];
+    toolBarTop = [[NSClassFromString(_toolBarArray[0]) alloc] initWithFrame:CGRectMake(0, 0, kMainScreenHeight, 50)];
+    toolBarLeft = [[NSClassFromString(_toolBarArray[1]) alloc] initWithFrame:CGRectMake(0, 50, 50,kMainScreenWidth - 150)];
+    toolBarBottom = [[NSClassFromString(_toolBarArray[2]) alloc] initWithFrame:CGRectMake(0, kMainScreenWidth - 100, kMainScreenHeight, 100)];
+    toolBarRight = [[NSClassFromString(_toolBarArray[3]) alloc] initWithFrame:CGRectMake(kMainScreenHeight - 50,50, 50, kMainScreenWidth - 150)];
+    [self.view addSubview:toolBarTop];
+    [self.view addSubview:toolBarRight];
+    [self.view addSubview:toolBarLeft];
+    [self.view addSubview:toolBarBottom];
+    //创建前视图
+    fontView = [[FontView alloc] initWithFrame:CGRectMake(20, kMainScreenWidth - 120, kMainScreenHeight / 4, 100)];
+//    fontView.backgroundColor = [UIColor orangeColor];
+    [self.view addSubview:fontView];
     
-    //前视图
-    [fontView mas_makeConstraints:^(MASConstraintMaker *make) {
+//    给前视图添加手势
+        UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(showImage:)];
+        [fontView addGestureRecognizer: tap];
+        fontView.userInteractionEnabled = YES;
+
+}
+- (void)showImage:(UITapGestureRecognizer*)tap{
+    _tapCount++;
+    //创建小的预览层
+    tempPreviewLayer = self.previewLayer;
+    if (_tapCount %2 != 0) {
+        backgroundView = [[UIView alloc] init];
+        backgroundView = [fontView copy];
+        [self.view addSubview:backgroundView];
+        [fontView.layer addSublayer:tempPreviewLayer];
         
-        make.height.equalTo(toolBarBottom.mas_height);
-        make.width.equalTo([NSNumber numberWithFloat:kMainScreenHeight / 4]);
+        //返回当前视图的point
+        NSLog(@"%f,%f,%f,%f",oldframe.origin.x,oldframe.origin.y,oldframe.size.width,oldframe.size.height);
+        [self.view bringSubviewToFront:toolBarTop];
+        [self.view bringSubviewToFront:toolBarBottom];
+        [self.view bringSubviewToFront:toolBarLeft];
+        [self.view bringSubviewToFront:toolBarRight];
+        [self.view bringSubviewToFront:fontView];
+        NSLog(@"all subviews of self.view:%@",[self.view subviews]);
+        [UIView animateWithDuration:0.3 animations:^{
+            backgroundView.frame = CGRectMake(0,0, kMainScreenWidth, kMainScreenHeight);
+            tempPreviewLayer.frame = CGRectMake(0,0, fontView.frame.size.width,fontView.frame.size.height);
+        } completion:^(BOOL finished) {
+            
+        }];
+    }else {
         
-        make.bottom.equalTo(self.view).offset(-20);
-        make.left.equalTo(self.view).offset(20);
-        [self.view addSubview:fontView];
-    }];
+        
+        
+        [tempPreviewLayer removeFromSuperlayer];
+        self.previewLayer.frame = oldframe;
+        [self.view.layer addSublayer:self.previewLayer];
+        [self.view bringSubviewToFront:toolBarTop];
+        [self.view bringSubviewToFront:toolBarBottom];
+        [self.view bringSubviewToFront:toolBarLeft];
+        [self.view bringSubviewToFront:toolBarRight];
+        [self.view bringSubviewToFront:fontView];
+        [UIView animateWithDuration:0.3 animations:^{
+            [backgroundView removeFromSuperview];
+            backgroundView = nil;
+        } completion:^(BOOL finished) {
+        }];
+        
+    }
     
+}
+- (void)hideView:(UITapGestureRecognizer*)tap {
+
 }
 - (void)createCama {
     //照相机
