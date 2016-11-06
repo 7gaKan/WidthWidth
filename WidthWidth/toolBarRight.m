@@ -18,6 +18,78 @@
 }
 */
 - (void)layout {
-    self.alpha = 0;
+    self.alpha = 0.5;
+    //拍照还是录像
+    _pickButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+    _pickButton.center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+    _pickButton.backgroundColor = [UIColor orangeColor];
+    [self addSubview:_pickButton];
+    self.userInteractionEnabled = YES;
+    [_pickButton addTarget:self action:@selector(pick:) forControlEvents:UIControlEventTouchUpInside];
+    [_pickButton setTitle:@"拍照" forState:UIControlStateNormal];
+    [_pickButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_pickButton sizeToFit];
+    
+    _changeTypeBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 30, 30)];
+//    _changeTypeBtn.center = CGPointMake(self.frame.size.width / 2 + 50, self.frame.size.height / 2);
+    _changeTypeBtn.backgroundColor = [UIColor orangeColor];
+    [self addSubview:_changeTypeBtn];
+    [_changeTypeBtn addTarget:self action:@selector(changeType:) forControlEvents:UIControlEventTouchUpInside];
+    [_changeTypeBtn setTitle:@"[照片]" forState:UIControlStateNormal];
+    [_changeTypeBtn setTitle:@"[视频]" forState:UIControlStateSelected];
+    [_changeTypeBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_changeTypeBtn sizeToFit];
+}
+
+- (void)pick:(UIButton *)btn {
+    NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
+    [recordingY addObserver:self selector:@selector(recordingY:) name:@"recordingY" object:nil];
+    NSNotificationCenter *recordingN = [NSNotificationCenter defaultCenter];
+    [recordingN addObserver:self selector:@selector(recordingN:) name:@"recordingN" object:nil];
+    if (_isGIF){
+        if (!_recording) {
+            NSNotificationCenter *notiCenter = [NSNotificationCenter defaultCenter];
+            [notiCenter postNotificationName:@"startRecording" object:nil];
+//            [self startRecording];
+            [_pickButton setTitle:@"停止" forState:UIControlStateNormal];
+        }
+        else{
+            NSNotificationCenter *notiCenter = [NSNotificationCenter defaultCenter];
+            [notiCenter postNotificationName:@"stopRecording" object:nil];
+//            [self stopRecording];
+            [_pickButton setTitle:@"开始" forState:UIControlStateNormal];
+        }
+    }
+    else{
+        NSNotificationCenter *notiCenter = [NSNotificationCenter defaultCenter];
+        [notiCenter postNotificationName:@"takePictureImage" object:nil];
+//        [self takePictureImage];
+    }
+}
+
+- (void)changeType:(UIButton *)btn {
+    btn.selected = !btn.selected;
+    if (btn.selected) {
+        _isGIF = YES;
+        [_pickButton setTitle:@"开始" forState:UIControlStateNormal];
+    }
+    else{
+        _isGIF = NO;
+        [_pickButton setTitle:@"拍照" forState:UIControlStateNormal];
+        //创建消息中心
+        NSNotificationCenter *notiCenter = [NSNotificationCenter defaultCenter];
+        [notiCenter postNotificationName:@"startCaptureSession" object:nil];
+
+    }
+    
+}
+#pragma  mark -消息中心-
+- (void)recordingY:(NSNotification *)noti {
+    self.recording = [noti.object intValue];
+    
+}
+- (void)recordingN:(NSNotification *)noti {
+    self.recording = [noti.object intValue];
+    
 }
 @end

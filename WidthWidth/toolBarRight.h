@@ -9,5 +9,8 @@
 #import "toolBarBaseView.h"
 
 @interface toolBarRight : toolBarBaseView
-
+@property(nonatomic, assign) BOOL isGIF;
+@property (nonatomic,strong) UIButton *pickButton;
+@property (nonatomic,strong) UIButton *changeTypeBtn;
+@property(nonatomic, assign) BOOL recording;
 @end
