@@ -15,6 +15,8 @@
 #import "FontView.h"
 #import "UIView+CCHUD.h"
 #import "CCTools+GIF.h"
+#import "TakePictureViewController.h"
+#import <CoreMotion/CoreMotion.h>
 
 
 #define kMainScreenWidth [UIScreen mainScreen].bounds.size.width
@@ -34,6 +36,8 @@ static CGRect oldframe;
     int _tapCount;
     //添加个后视图
     UIView *backgroundView;
+    
+    CMMotionManager *_motionManager;
     
     
     //添加个临时预览层
@@ -70,6 +74,7 @@ static CGRect oldframe;
 // 设备方向
 //@property(nonatomic, strong) CCMotionManager    *motionManager;
 @property(readwrite) AVCaptureVideoOrientation	referenceOrientation; // 视频播放方向
+@property(nonatomic, assign)UIDeviceOrientation deviceOrientation;
 
 
 
@@ -97,6 +102,16 @@ static CGRect oldframe;
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor grayColor];
+    //test
+    _motionManager = [[CMMotionManager alloc] init];
+    _motionManager.deviceMotionUpdateInterval = 1/15.0;
+    
+    if (_motionManager.deviceMotionAvailable) {
+        [_motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue]
+                                            withHandler: ^(CMDeviceMotion *motion, NSError *error){
+                                                [self performSelectorOnMainThread:@selector(handleDeviceMotion:) withObject:motion waitUntilDone:YES];
+                                            }];
+    }
     
     
     //照相机
@@ -105,7 +120,7 @@ static CGRect oldframe;
     // 创建4个toolbar
     [self toolBarCreate];
     //创建手势
-    [self setUpGesture];
+//    [self setUpGesture];
     
     self.effectiveScale = self.beginGestureScale = 1.0f;
     
@@ -123,6 +138,54 @@ static CGRect oldframe;
 
     
 }
+- (void)handleDeviceMotion:(CMDeviceMotion *)deviceMotion{
+    double x = deviceMotion.gravity.x;
+    double y = deviceMotion.gravity.y;
+    NSLog(@"%f,%f",x,y);
+    //求浮点数x的绝对值 C语言
+    if (fabs(y) >= fabs(x))
+    {
+        if (y >= 0){
+            _deviceOrientation = UIDeviceOrientationPortraitUpsideDown;
+            _referenceOrientation = AVCaptureVideoOrientationPortraitUpsideDown;
+        }
+        else{
+            _deviceOrientation = UIDeviceOrientationPortrait;
+            _referenceOrientation = AVCaptureVideoOrientationPortrait;
+        }
+    }
+    else{
+        if (x >= 0){
+            _deviceOrientation = UIDeviceOrientationLandscapeRight;
+            _referenceOrientation = AVCaptureVideoOrientationLandscapeRight;
+        }
+        else{
+            _deviceOrientation = UIDeviceOrientationLandscapeLeft;
+            _referenceOrientation = AVCaptureVideoOrientationLandscapeLeft;
+        }
+    }
+}
+- (void)viewWillAppear:(BOOL)animated {
+    NSNumber *orientationUnknown = [NSNumber numberWithInt:UIInterfaceOrientationUnknown];
+    [[UIDevice currentDevice] setValue:orientationUnknown forKey:@"orientation"];
+    
+    NSNumber *orientationTarget = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
+    [[UIDevice currentDevice] setValue:orientationTarget forKey:@"orientation"];
+}
+//- (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
+//{
+//    AVCaptureVideoOrientation result = (AVCaptureVideoOrientation)deviceOrientation;
+//    if ( deviceOrientation == UIDeviceOrientationLandscapeLeft )
+//        result = AVCaptureVideoOrientationLandscapeLeft;
+//    else if ( deviceOrientation == UIDeviceOrientationLandscapeRight )
+//        result = AVCaptureVideoOrientationLandscapeRight;
+//    else if (deviceOrientation == UIDeviceOrientationPortrait) {
+//        result = AVCaptureVideoOrientationPortrait;
+//    }else {
+//        result = AVCaptureVideoOrientationPortraitUpsideDown;
+//    }
+//    return result;
+//}
 #pragma  mark -消息中心-
 - (void)startCaptureSession:(NSNotification *)noti {
             [self startCaptureSession];
@@ -225,55 +288,14 @@ static CGRect oldframe;
     }
     
     
-    //照相机
-//    self.session = [[AVCaptureSession alloc] init];
-    
-//    _device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+
     //更改这个设置的时候必须先锁定设备，修改完后再解锁，否则崩溃
     [_device lockForConfiguration:nil];
     //设置闪光灯为自动
     [_device setFlashMode:AVCaptureFlashModeAuto];
     [_device unlockForConfiguration];
     
-//    self.videoInput = [[AVCaptureDeviceInput alloc] initWithDevice:_device error:&error];
-//    if (error) {
-//        NSLog(@"%@",error);
-//    }
-    
-    
-//    self.stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
-//    //输出设置。AVVideoCodecJPEG   输出jpeg格式图片
-//    NSDictionary * outputSettings = [[NSDictionary alloc] initWithObjectsAndKeys:AVVideoCodecJPEG,AVVideoCodecKey, nil];
-//    [self.stillImageOutput setOutputSettings:outputSettings];
-//    
-//    if ([self.session canAddInput:self.videoInput]) {
-//        [self.session addInput:self.videoInput];
-//    }
-////    if ([self.session canAddOutput:self.videoOutput]) {
-////        [self.session addInput:self.videoOutput];
-////    }
-//    if ([self.session canAddOutput:self.stillImageOutput]) {
-//        [self.session addOutput:self.stillImageOutput];
-//    }
-    
-    //初始化预览图层
-//    self.previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:self.session];
-//    NSLog(@"%f",kMainScreenWidth);
-//    self.previewLayer.connection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
-//    self.previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
-//    self.previewLayer.frame = (CGRect){{0, 0}, self.view.frame.size.height,self.view.frame.size.width};
-//    self.view.layer.masksToBounds = YES;
-//    [self.view.layer addSublayer:self.previewLayer];
-//    
-//    oldframe = self.previewLayer.frame;
-    
-    // 比如在给会话设置视频输出后，设置捕捉连接
-//    self.videoConnection = [_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
-//    self.videoConnection.videoOrientation =
-    
-//    if () {
-//        <#statements#>
-//    }
+
     
 
 }
@@ -281,23 +303,24 @@ static CGRect oldframe;
 #pragma mark - 拍照
 -(void)takePictureImage{
     AVCaptureConnection *connection = [_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
+    //*********************************************
+    if (connection.isVideoOrientationSupported) {
+        connection.videoOrientation = [self currentVideoOrientation];
+    }
     id takePictureSuccess = ^(CMSampleBufferRef sampleBuffer,NSError *error){
         if (sampleBuffer == NULL) {
             [self showError:error];
             return ;
         }
-//        NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
-//        UIImage *image = [[UIImage alloc]initWithData:imageData];
-//        CCImagePreviewController *vc = [[CCImagePreviewController alloc]initWithImage:image frame:self.previewView.frame];
-//        [self.navigationController pushViewController:vc animated:YES];
+        NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
+        UIImage *image = [[UIImage alloc]initWithData:imageData];
+//
+        TakePictureViewController *takePicture = [[TakePictureViewController alloc] initWithImage:image];
+        [self presentViewController:takePicture animated:NO completion:nil];
     };
     [_stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler:takePictureSuccess];
 }
 
-- (BOOL)inputsReadyToRecord
-{
-    return (_readyToRecordAudio && _readyToRecordVideo);
-}
 
 - (void)writeSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(NSString *)mediaType
 {
@@ -322,14 +345,7 @@ static CGRect oldframe;
                 }
             }
         }
-        else if (mediaType == AVMediaTypeAudio){
-            if (_assetAudioInput.readyForMoreMediaData)
-            {
-                if (![_assetAudioInput appendSampleBuffer:sampleBuffer]){
-                    [self showError:_assetWriter.error];
-                }
-            }
-        }
+
     }
 }
 
@@ -432,6 +448,66 @@ static CGRect oldframe;
     }
     return YES;
 }
+#pragma mark - 设备方向
+// 调整设备取向
+- (AVCaptureVideoOrientation)currentVideoOrientation{
+    AVCaptureVideoOrientation orientation;
+    switch (_deviceOrientation) {
+        case UIDeviceOrientationPortrait:
+            orientation = AVCaptureVideoOrientationPortrait;
+            break;
+        case UIDeviceOrientationLandscapeRight:
+            orientation = AVCaptureVideoOrientationLandscapeLeft;
+            break;
+        case UIDeviceOrientationPortraitUpsideDown:
+            orientation = AVCaptureVideoOrientationPortraitUpsideDown;
+            break;
+        default:
+            orientation = AVCaptureVideoOrientationLandscapeRight;
+            break;
+    }
+    return orientation;
+}
+//#pragma mark  -视频旋转方向
+// 旋转视频方向
+- (CGAffineTransform)transformFromCurrentVideoOrientationToOrientation:(AVCaptureVideoOrientation)orientation
+{
+    CGFloat orientationAngleOffset = [self angleOffsetFromPortraitOrientationToOrientation:orientation];
+    CGFloat videoOrientationAngleOffset = [self angleOffsetFromPortraitOrientationToOrientation:UIDeviceOrientationLandscapeRight];
+    
+    CGFloat angleOffset;
+    if ([self activeCamera].position == AVCaptureDevicePositionBack) {
+        angleOffset = orientationAngleOffset - videoOrientationAngleOffset;
+    }
+    else{
+        angleOffset = videoOrientationAngleOffset - orientationAngleOffset + M_PI_2;
+    }
+    CGAffineTransform transform = CGAffineTransformMakeRotation(angleOffset);
+    return transform;
+}
+
+- (CGFloat)angleOffsetFromPortraitOrientationToOrientation:(AVCaptureVideoOrientation)orientation
+{
+    CGFloat angle = 0.0;
+    switch (orientation)
+    {
+        case AVCaptureVideoOrientationPortrait:
+            angle = 0.0;
+            break;
+        case AVCaptureVideoOrientationPortraitUpsideDown:
+            angle = M_PI;
+            break;
+        case AVCaptureVideoOrientationLandscapeRight:
+            angle = -M_PI_2;
+            break;
+        case AVCaptureVideoOrientationLandscapeLeft:
+            angle = M_PI_2;
+            break;
+        default:
+            break;
+    }
+    return angle;
+}
 #pragma mark - 录制视频
 // 开始录制
 - (void)startRecording
@@ -448,8 +524,10 @@ static CGRect oldframe;
             }
         }
         _recording = YES;
-        NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
-        [recordingY postNotificationName:@"recordingY" object:[NSString stringWithFormat:@"%d",_recording]];
+        UserDefault *user = [UserDefault shareUser];
+        user.record = _recording;
+//        NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
+//        [recordingY postNotificationName:@"recordingY" object:[NSString stringWithFormat:@"%d",_recording]];
     });
 }
 
@@ -459,8 +537,9 @@ static CGRect oldframe;
     // 录制完成后 要马上停止视频捕捉 否则写入相册会失败
     [self stopCaptureSession];
     _recording = NO;
-    NSNotificationCenter *recordingN = [NSNotificationCenter defaultCenter];
-    [recordingN postNotificationName:@"recordingN" object:[NSString stringWithFormat:@"%d",_recording]];
+    UserDefault *user = [UserDefault shareUser];
+    user.record = _recording;
+
     dispatch_async(_movieWritingQueue, ^{
         
         [_assetWriter finishWritingWithCompletionHandler:^(){
@@ -487,7 +566,7 @@ static CGRect oldframe;
             }
             if (isSave) {
                 dispatch_sync(dispatch_get_main_queue(), ^{
-                    [self.view showAlertView:self message:@"是否保存到相册，确定将保存2个文件到相册，一个视频，一个GIF动图(由于苹果相册不支持查看GIF，所以只有通过QQ等软件查看)" sure:^(UIAlertAction *act) {
+                    [self.view showAlertView:self message:@"Save Success!)" sure:^(UIAlertAction *act) {
                         [self saveMovieToCameraRoll];
                     } cancel:^(UIAlertAction *act) {
                         
@@ -559,7 +638,31 @@ static CGRect oldframe;
         }];
 #endif
     }];}
-
+#pragma mark - 捕捉设备
+- (AVCaptureDevice *)cameraWithPosition:(AVCaptureDevicePosition)position {
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in devices) {
+        if (device.position == position) {
+            return device;
+        }
+    }
+    return nil;
+}
+- (AVCaptureDevice *)activeCamera {
+    return _videoInput.device;
+}
+- (AVCaptureDevice *)inactiveCamera {
+    AVCaptureDevice *device = nil;
+    if ([[AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo] count] > 1) {
+        if ([self activeCamera].position == AVCaptureDevicePositionBack) {
+            device = [self cameraWithPosition:AVCaptureDevicePositionFront];
+        }
+        else{
+            device = [self cameraWithPosition:AVCaptureDevicePositionBack];
+        }
+    }
+    return device;
+}
 #pragma mark - 开始捕捉  停止捕捉
 // 开启捕捉
 - (void)startCaptureSession
@@ -632,7 +735,7 @@ static CGRect oldframe;
         _videoOutput = videoOut;
     }
     _videoConnection = [videoOut connectionWithMediaType:AVMediaTypeVideo];
-    _videoConnection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+//    _videoConnection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
     
     // 静态图片输出
     AVCaptureStillImageOutput *imageOutput = [[AVCaptureStillImageOutput alloc] init];
@@ -644,80 +747,10 @@ static CGRect oldframe;
 
 }
 //10块钱
-- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
-    self.previewLayer.frame = (CGRect){{0, 0}, size};
-}
 
-- (void)viewWillAppear:(BOOL)animated {
-    if (self.session) {
-        
-        [self.session startRunning];
-    }
-}
-- (void)viewDidDisappear:(BOOL)animated{
-    
-    [super viewDidDisappear:YES];
-    
-    if (self.session) {
-        
-        [self.session stopRunning];
-    }
-}
-
-#pragma 创建手势
-- (void)setUpGesture{
-    
-    UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinchGesture:)];
-    pinch.delegate = self;
-    [self.view addGestureRecognizer:pinch];
-}
-#pragma mark gestureRecognizer delegate
-- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+- (BOOL)inputsReadyToRecord
 {
-    if ( [gestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]] ) {
-        self.beginGestureScale = self.effectiveScale;
-    }
-    return YES;
-}
-
-//缩放手势 用于调整焦距
-- (void)handlePinchGesture:(UIPinchGestureRecognizer *)recognizer{
-    
-    BOOL allTouchesAreOnThePreviewLayer = YES;
-    //手指数
-    NSUInteger numTouches = [recognizer numberOfTouches];
-    for ( int i = 0; i < numTouches; ++i ) {
-        CGPoint location = [recognizer locationOfTouch:i inView:self.view];
-        CGPoint convertedLocation = [self.previewLayer convertPoint:location fromLayer:self.previewLayer.superlayer];
-        if ( ! [self.previewLayer containsPoint:convertedLocation] ) {
-            allTouchesAreOnThePreviewLayer = NO;
-            break;
-        }
-    }
-    
-    if ( allTouchesAreOnThePreviewLayer ) {
-        
-        
-        self.effectiveScale = self.beginGestureScale * recognizer.scale;
-        if (self.effectiveScale < 1.0){
-            self.effectiveScale = 1.0;
-        }
-        
-        NSLog(@"%f-------------->%f------------recognizerScale%f",self.effectiveScale,self.beginGestureScale,recognizer.scale);
-        
-        CGFloat maxScaleAndCropFactor = [[self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo] videoMaxScaleAndCropFactor];
-        
-        NSLog(@"%f",maxScaleAndCropFactor);
-        if (self.effectiveScale > maxScaleAndCropFactor)
-            self.effectiveScale = maxScaleAndCropFactor;
-        
-        [CATransaction begin];
-        [CATransaction setAnimationDuration:.025];
-        [self.previewLayer setAffineTransform:CGAffineTransformMakeScale(self.effectiveScale, self.effectiveScale)];
-        [CATransaction commit];
-        
-    }
-    
+    return _readyToRecordVideo;
 }
 //展示错误封装代码
 #pragma mark - 展示错误
@@ -745,6 +778,24 @@ static CGRect oldframe;
     
     [vc presentViewController:alertController animated:YES completion:nil];
 }
+-(void)resetupVideoOutput{
+    [_session beginConfiguration];
+    [_session removeOutput:_videoOutput];
+    
+    AVCaptureVideoDataOutput *videoOut = [[AVCaptureVideoDataOutput alloc] init];
+    [videoOut setAlwaysDiscardsLateVideoFrames:YES];
+    [videoOut setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]}];
+    dispatch_queue_t videoCaptureQueue = dispatch_queue_create("Video Capture Queue", DISPATCH_QUEUE_SERIAL);
+    [videoOut setSampleBufferDelegate:self queue:videoCaptureQueue];
+    
+    if ([_session canAddOutput:videoOut]) {
+        [_session addOutput:videoOut];
+        _videoOutput = videoOut;
+    }
+    _videoConnection = [videoOut connectionWithMediaType:AVMediaTypeVideo];
+    _videoConnection.videoOrientation = self.referenceOrientation;
+    [_session commitConfiguration];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -752,7 +803,7 @@ static CGRect oldframe;
 }
 //支持旋转
 -(BOOL)shouldAutorotate{
-    return YES;
+    return NO;
 }
 //
 //支持的方向

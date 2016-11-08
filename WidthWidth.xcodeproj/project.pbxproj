@@ -35,6 +35,8 @@
 		736201EA1DCF207100345C7A /* UIView+CCHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 736201E61DCF207100345C7A /* UIView+CCHUD.m */; };
 		736201F11DCF326000345C7A /* CCTools.m in Sources */ = {isa = PBXBuildFile; fileRef = 736201EE1DCF326000345C7A /* CCTools.m */; };
 		736201F21DCF326000345C7A /* CCTools+GIF.m in Sources */ = {isa = PBXBuildFile; fileRef = 736201F01DCF326000345C7A /* CCTools+GIF.m */; };
+		736201F51DCF6D9C00345C7A /* UserDefault.m in Sources */ = {isa = PBXBuildFile; fileRef = 736201F41DCF6D9C00345C7A /* UserDefault.m */; };
+		736201F81DCF7C0D00345C7A /* TakePictureViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 736201F71DCF7C0D00345C7A /* TakePictureViewController.m */; };
 		73FED4571DCAC7E800C0BDA8 /* toolBarBaseView.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED4561DCAC7E800C0BDA8 /* toolBarBaseView.m */; };
 		73FED45A1DCAC80300C0BDA8 /* toolBarTop.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED4591DCAC80300C0BDA8 /* toolBarTop.m */; };
 		73FED45D1DCAC81200C0BDA8 /* tooBarBottom.m in Sources */ = {isa = PBXBuildFile; fileRef = 73FED45C1DCAC81200C0BDA8 /* tooBarBottom.m */; };
@@ -122,6 +124,10 @@
 		736201EE1DCF326000345C7A /* CCTools.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CCTools.m; sourceTree = "<group>"; };
 		736201EF1DCF326000345C7A /* CCTools+GIF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CCTools+GIF.h"; sourceTree = "<group>"; };
 		736201F01DCF326000345C7A /* CCTools+GIF.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CCTools+GIF.m"; sourceTree = "<group>"; };
+		736201F31DCF6D9C00345C7A /* UserDefault.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UserDefault.h; sourceTree = "<group>"; };
+		736201F41DCF6D9C00345C7A /* UserDefault.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UserDefault.m; sourceTree = "<group>"; };
+		736201F61DCF7C0D00345C7A /* TakePictureViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TakePictureViewController.h; sourceTree = "<group>"; };
+		736201F71DCF7C0D00345C7A /* TakePictureViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TakePictureViewController.m; sourceTree = "<group>"; };
 		73FED4551DCAC7E800C0BDA8 /* toolBarBaseView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = toolBarBaseView.h; sourceTree = "<group>"; };
 		73FED4561DCAC7E800C0BDA8 /* toolBarBaseView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = toolBarBaseView.m; sourceTree = "<group>"; };
 		73FED4581DCAC80300C0BDA8 /* toolBarTop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = toolBarTop.h; sourceTree = "<group>"; };
@@ -272,8 +278,6 @@
 				73FED4501DCAC3F600C0BDA8 /* Model */,
 				73FED44F1DCAC3E900C0BDA8 /* Controller */,
 				73FED44E1DCAC3DF00C0BDA8 /* View */,
-				7300568B1DC9C6FF001631E8 /* SecondViewController.h */,
-				7300568C1DC9C6FF001631E8 /* SecondViewController.m */,
 				7304D3781DCE093600A17A2C /* previewLayer.h */,
 				7304D3791DCE093600A17A2C /* previewLayer.m */,
 			);
@@ -330,6 +334,10 @@
 		73FED44F1DCAC3E900C0BDA8 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
+				7300568B1DC9C6FF001631E8 /* SecondViewController.h */,
+				7300568C1DC9C6FF001631E8 /* SecondViewController.m */,
+				736201F61DCF7C0D00345C7A /* TakePictureViewController.h */,
+				736201F71DCF7C0D00345C7A /* TakePictureViewController.m */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -337,6 +345,8 @@
 		73FED4501DCAC3F600C0BDA8 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				736201F31DCF6D9C00345C7A /* UserDefault.h */,
+				736201F41DCF6D9C00345C7A /* UserDefault.m */,
 			);
 			name = Model;
 			sourceTree = "<group>";
@@ -487,6 +497,7 @@
 				73FED4631DCAC82E00C0BDA8 /* toolBarRight.m in Sources */,
 				736201E71DCF207100345C7A /* UILabel+CCFont.m in Sources */,
 				730056901DC9C9D4001631E8 /* CusNavigationViewController.m in Sources */,
+				736201F51DCF6D9C00345C7A /* UserDefault.m in Sources */,
 				730056B51DC9D64D001631E8 /* View+MASAdditions.m in Sources */,
 				736201F11DCF326000345C7A /* CCTools.m in Sources */,
 				730056AD1DC9D64D001631E8 /* MASCompositeConstraint.m in Sources */,
@@ -496,6 +507,7 @@
 				7304D3771DCE045D00A17A2C /* FontView.m in Sources */,
 				73FED45A1DCAC80300C0BDA8 /* toolBarTop.m in Sources */,
 				730056B31DC9D64D001631E8 /* NSArray+MASAdditions.m in Sources */,
+				736201F81DCF7C0D00345C7A /* TakePictureViewController.m in Sources */,
 				73FED45D1DCAC81200C0BDA8 /* tooBarBottom.m in Sources */,
 				736201EA1DCF207100345C7A /* UIView+CCHUD.m in Sources */,
 				730056B61DC9D64D001631E8 /* ViewController+MASAdditions.m in Sources */,

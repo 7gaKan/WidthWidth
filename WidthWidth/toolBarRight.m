@@ -42,12 +42,13 @@
 }
 
 - (void)pick:(UIButton *)btn {
-    NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
-    [recordingY addObserver:self selector:@selector(recordingY:) name:@"recordingY" object:nil];
-    NSNotificationCenter *recordingN = [NSNotificationCenter defaultCenter];
-    [recordingN addObserver:self selector:@selector(recordingN:) name:@"recordingN" object:nil];
+//    NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
+//    [recordingY addObserver:self selector:@selector(recordingY:) name:@"recordingY" object:nil];
+//    NSNotificationCenter *recordingN = [NSNotificationCenter defaultCenter];
+//    [recordingN addObserver:self selector:@selector(recordingN:) name:@"recordingN" object:nil];
+    UserDefault *user = [UserDefault shareUser];
     if (_isGIF){
-        if (!_recording) {
+        if (!user.record) {
             NSNotificationCenter *notiCenter = [NSNotificationCenter defaultCenter];
             [notiCenter postNotificationName:@"startRecording" object:nil];
 //            [self startRecording];
@@ -83,13 +84,13 @@
     }
     
 }
-#pragma  mark -消息中心-
-- (void)recordingY:(NSNotification *)noti {
-    self.recording = [noti.object intValue];
-    
-}
-- (void)recordingN:(NSNotification *)noti {
-    self.recording = [noti.object intValue];
-    
-}
+//#pragma  mark -消息中心-
+//- (void)recordingY:(NSNotification *)noti {
+//    self.recording = [noti.object intValue];
+//    
+//}
+//- (void)recordingN:(NSNotification *)noti {
+//    self.recording = [noti.object intValue];
+//    
+//}
 @end
