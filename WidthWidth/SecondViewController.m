@@ -17,32 +17,33 @@
 #import "CCTools+GIF.h"
 #import "TakePictureViewController.h"
 #import <CoreMotion/CoreMotion.h>
+//#import "MAMapView.h"
+#import <MAMapKit/MAMapKit.h>
+
 
 
 #define kMainScreenWidth [UIScreen mainScreen].bounds.size.width
 #define kMainScreenHeight  [UIScreen mainScreen].bounds.size.height
 static CGRect oldframe;
-@interface SecondViewController ()<UIGestureRecognizerDelegate,AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate> {
+static int _tapCount;
+@interface SecondViewController ()<UIGestureRecognizerDelegate,AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,MAMapViewDelegate> {
     NSArray *_toolBarArray;
     //UI
     toolBarBaseView *_base;
-//    UIView *fontView;
     toolBarBaseView *toolBarTop;
     toolBarBaseView *toolBarLeft;
     toolBarBaseView *toolBarRight;
     toolBarBaseView *toolBarBottom;
     FontView *fontView;
-    //点击小视图次数
-    int _tapCount;
     //添加个后视图
     UIView *backgroundView;
-    
-    CMMotionManager *_motionManager;
-    
-    
     //添加个临时预览层
     AVCaptureVideoPreviewLayer *tempPreviewLayer;
+    
 }
+
+
+@property (nonatomic, strong) MAMapView *mapView;
 @property (nonatomic, strong) AVCaptureSession* session;
 /**
  *  输入设备
@@ -60,10 +61,11 @@ static CGRect oldframe;
 @property (nonatomic, strong) AVAssetWriterInput *assetAudioInput;
 @property (nonatomic, strong) AVAssetWriterInput *assetVideoInput;
 @property (nonatomic, strong) dispatch_queue_t movieWritingQueue;
+
 @property (nonatomic, assign) BOOL readyToRecordVideo;
 @property (nonatomic, assign) BOOL readyToRecordAudio;
 @property (nonatomic, assign) BOOL recording;
-//@property(nonatomic, assign) BOOL      isGIF;           //拍照片还是GIF
+
 // 相机设置
 @property(nonatomic, strong) AVCaptureDevice *device;
 @property(nonatomic, strong) AVCaptureDevice *inactiveCamera;
@@ -72,7 +74,8 @@ static CGRect oldframe;
 @property(nonatomic) AVCaptureFlashMode flashMode;
 
 // 设备方向
-//@property(nonatomic, strong) CCMotionManager    *motionManager;
+//通过移动管理者确定手机当前所处的方向
+@property(nonatomic, strong) CMMotionManager    *motionManager;
 @property(readwrite) AVCaptureVideoOrientation	referenceOrientation; // 视频播放方向
 @property(nonatomic, assign)UIDeviceOrientation deviceOrientation;
 
@@ -86,14 +89,6 @@ static CGRect oldframe;
 @property (nonatomic, strong) AVCaptureVideoPreviewLayer* previewLayer;
 //捕捉连接 AVCaptureConnection
 @property (nonatomic, strong) AVCaptureConnection *videoConnection;
-/**
- *  记录开始的缩放比例
- */
-@property(nonatomic,assign)CGFloat beginGestureScale;
-/**
- *  最后的缩放比例
- */
-@property(nonatomic,assign)CGFloat effectiveScale;
 @end
 
 @implementation SecondViewController
@@ -102,7 +97,31 @@ static CGRect oldframe;
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor grayColor];
-    //test
+    //照相机
+    [self createCama];
+    // 创建4个toolbar
+    [self toolBarCreate];
+    
+    
+    //添加消息中心 处理Tool里面button点击事件
+    [self notifitionSet];
+    //通过设备的移动(motionManager)判断设备的方向
+    [self createMotionManager];
+    
+}
+#pragma  mark -消息中心集合
+- (void)notifitionSet  {
+    NSNotificationCenter *startCaptureSession = [NSNotificationCenter defaultCenter];
+    [startCaptureSession addObserver:self selector:@selector(startCaptureSession:) name:@"startCaptureSession" object:nil];
+    NSNotificationCenter *startRecording = [NSNotificationCenter defaultCenter];
+    [startRecording addObserver:self selector:@selector(startRecording:) name:@"startRecording" object:nil];
+    NSNotificationCenter *stopRecording = [NSNotificationCenter defaultCenter];
+    [stopRecording addObserver:self selector:@selector(stopRecording:) name:@"stopRecording" object:nil];
+    NSNotificationCenter *takePictureImage = [NSNotificationCenter defaultCenter];
+    [takePictureImage addObserver:self selector:@selector(takePictureImage:) name:@"takePictureImage" object:nil];
+}
+#pragma mark - 通过设备的移动(motionManager)判断设备的方向
+- (void)createMotionManager {
     _motionManager = [[CMMotionManager alloc] init];
     _motionManager.deviceMotionUpdateInterval = 1/15.0;
     
@@ -112,31 +131,6 @@ static CGRect oldframe;
                                                 [self performSelectorOnMainThread:@selector(handleDeviceMotion:) withObject:motion waitUntilDone:YES];
                                             }];
     }
-    
-    
-    //照相机
-    [self createCama];
-//    oldframe = self.previewLayer.frame;
-    // 创建4个toolbar
-    [self toolBarCreate];
-    //创建手势
-//    [self setUpGesture];
-    
-    self.effectiveScale = self.beginGestureScale = 1.0f;
-    
-    //添加消息中心 处理Tool里面button点击事件
-    NSNotificationCenter *startCaptureSession = [NSNotificationCenter defaultCenter];
-    [startCaptureSession addObserver:self selector:@selector(startCaptureSession:) name:@"startCaptureSession" object:nil];
-    NSNotificationCenter *startRecording = [NSNotificationCenter defaultCenter];
-    [startRecording addObserver:self selector:@selector(startRecording:) name:@"startRecording" object:nil];
-    NSNotificationCenter *stopRecording = [NSNotificationCenter defaultCenter];
-    [stopRecording addObserver:self selector:@selector(stopRecording:) name:@"stopRecording" object:nil];
-    NSNotificationCenter *takePictureImage = [NSNotificationCenter defaultCenter];
-    [takePictureImage addObserver:self selector:@selector(takePictureImage:) name:@"takePictureImage" object:nil];
-    
-    
-
-    
 }
 - (void)handleDeviceMotion:(CMDeviceMotion *)deviceMotion{
     double x = deviceMotion.gravity.x;
@@ -165,27 +159,16 @@ static CGRect oldframe;
         }
     }
 }
+- (void)viewDidAppear:(BOOL)animated {
+    // 开启定位
+    self.mapView.showsUserLocation = YES;
+    self.mapView.userTrackingMode = MAUserTrackingModeFollow;
+}
 - (void)viewWillAppear:(BOOL)animated {
-    NSNumber *orientationUnknown = [NSNumber numberWithInt:UIInterfaceOrientationUnknown];
-    [[UIDevice currentDevice] setValue:orientationUnknown forKey:@"orientation"];
-    
+    //没有这句照片照出来之后不是横屏
     NSNumber *orientationTarget = [NSNumber numberWithInt:UIInterfaceOrientationLandscapeRight];
     [[UIDevice currentDevice] setValue:orientationTarget forKey:@"orientation"];
 }
-//- (AVCaptureVideoOrientation)avOrientationForDeviceOrientation:(UIDeviceOrientation)deviceOrientation
-//{
-//    AVCaptureVideoOrientation result = (AVCaptureVideoOrientation)deviceOrientation;
-//    if ( deviceOrientation == UIDeviceOrientationLandscapeLeft )
-//        result = AVCaptureVideoOrientationLandscapeLeft;
-//    else if ( deviceOrientation == UIDeviceOrientationLandscapeRight )
-//        result = AVCaptureVideoOrientationLandscapeRight;
-//    else if (deviceOrientation == UIDeviceOrientationPortrait) {
-//        result = AVCaptureVideoOrientationPortrait;
-//    }else {
-//        result = AVCaptureVideoOrientationPortraitUpsideDown;
-//    }
-//    return result;
-//}
 #pragma  mark -消息中心-
 - (void)startCaptureSession:(NSNotification *)noti {
             [self startCaptureSession];
@@ -215,15 +198,22 @@ static CGRect oldframe;
     [self.view addSubview:toolBarRight];
     [self.view addSubview:toolBarLeft];
     [self.view addSubview:toolBarBottom];
+    
+    
     //创建前视图
     fontView = [[FontView alloc] initWithFrame:CGRectMake(20, kMainScreenWidth - 120, kMainScreenHeight / 4, 100)];
-//    fontView.backgroundColor = [UIColor orangeColor];
     [self.view addSubview:fontView];
-    
 //    给前视图添加手势
         UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(showImage:)];
         [fontView addGestureRecognizer: tap];
         fontView.userInteractionEnabled = YES;
+    
+    self.mapView = [[MAMapView alloc] initWithFrame:fontView.frame];
+    self.mapView.delegate = self;
+    self.mapView.backgroundColor = [UIColor greenColor];
+    [self.view addSubview:_mapView];
+    [self.view insertSubview:_mapView aboveSubview:fontView];
+    self.mapView.userInteractionEnabled = YES;
 
 }
 - (void)showImage:(UITapGestureRecognizer*)tap{
@@ -244,6 +234,7 @@ static CGRect oldframe;
         [self.view bringSubviewToFront:toolBarRight];
         [self.view bringSubviewToFront:fontView];
         NSLog(@"all subviews of self.view:%@",[self.view subviews]);
+        
         [UIView animateWithDuration:0.3 animations:^{
             backgroundView.frame = CGRectMake(0,0, kMainScreenWidth, kMainScreenHeight);
             tempPreviewLayer.frame = CGRectMake(0,0, fontView.frame.size.width,fontView.frame.size.height);
@@ -251,8 +242,6 @@ static CGRect oldframe;
             
         }];
     }else {
-        
-        
         
         [tempPreviewLayer removeFromSuperlayer];
         self.previewLayer.frame = oldframe;
@@ -262,6 +251,7 @@ static CGRect oldframe;
         [self.view bringSubviewToFront:toolBarLeft];
         [self.view bringSubviewToFront:toolBarRight];
         [self.view bringSubviewToFront:fontView];
+        
         [UIView animateWithDuration:0.3 animations:^{
             [backgroundView removeFromSuperview];
             backgroundView = nil;
@@ -275,6 +265,7 @@ static CGRect oldframe;
 
 }
 - (void)createCama {
+    
     _movieURL = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@%@", NSTemporaryDirectory(), @"movie.mov"]];
     NSError *error;
     [self setupSession:&error];
@@ -286,18 +277,6 @@ static CGRect oldframe;
     else{
         [self showError:error];
     }
-    
-    
-
-    //更改这个设置的时候必须先锁定设备，修改完后再解锁，否则崩溃
-    [_device lockForConfiguration:nil];
-    //设置闪光灯为自动
-    [_device setFlashMode:AVCaptureFlashModeAuto];
-    [_device unlockForConfiguration];
-    
-
-    
-
 }
 // 拍照
 #pragma mark - 拍照
@@ -314,13 +293,20 @@ static CGRect oldframe;
         }
         NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:sampleBuffer];
         UIImage *image = [[UIImage alloc]initWithData:imageData];
-//
+        
+        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+            [[PHAssetCreationRequest creationRequestForAsset] addResourceWithType:PHAssetResourceTypePhoto data:imageData options:nil];
+        } completionHandler:^( BOOL success, NSError *error ) {
+            if ( ! success ) {
+                NSLog( @"Error occurred while saving image to photo library: %@", error );
+            }
+        }];
         TakePictureViewController *takePicture = [[TakePictureViewController alloc] initWithImage:image];
         [self presentViewController:takePicture animated:NO completion:nil];
     };
     [_stillImageOutput captureStillImageAsynchronouslyFromConnection:connection completionHandler:takePictureSuccess];
+    
 }
-
 
 - (void)writeSampleBuffer:(CMSampleBufferRef)sampleBuffer ofType:(NSString *)mediaType
 {
