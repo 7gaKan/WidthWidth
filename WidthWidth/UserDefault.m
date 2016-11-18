@@ -17,4 +17,7 @@
     });
     return sharedAccountManagerInstance;
 }
+- (NSArray *)btnPicArr {
+    return @[@"one",@"two",@"three",@"four",@"five",@"six"];
+}
 @end

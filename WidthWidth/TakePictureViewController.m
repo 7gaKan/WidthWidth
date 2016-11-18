@@ -21,23 +21,12 @@
     }
     return self;
 }
-//- (void)viewWillAppear:(BOOL)animated {
-//    NSNumber *orientationUnknown = [NSNumber numberWithInt:UIInterfaceOrientationUnknown];
-//    [[UIDevice currentDevice] setValue:orientationUnknown forKey:@"orientation"];
-//    
-//    NSNumber *orientationTarget = [NSNumber numberWithInt:UIInterfaceOrientationPortrait];
-//    [[UIDevice currentDevice] setValue:orientationTarget forKey:@"orientation"];
-//}
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
     imv = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)];
     [self.view addSubview:imv];
-//    NSData *uploadData1 = UIImageJPEGRepresentation(self.image, 1.0);
-//    self.view.frame = CGRectMake(0, 0, self.self.view.frame.size.width, <#CGFloat height#>)
-
-//     UIImage *croppedImage = [UIImage imageWithCGImage:(__bridge CGImageRef _Nonnull)(self.image) scale:1.0 orientation:UIImageOrientationUp];
     imv.image = self.image;
 }
 
@@ -45,10 +34,7 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-////10块钱
-//- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
-//    imv.frame = (CGRect){{0, 0}, size};
-//}
+
 /*
 #pragma mark - Navigation
 

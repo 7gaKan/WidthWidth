@@ -8,9 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
+//@protocol AddViewDelegate <NSObject>
+//
+//- (void)secControllerAddSubView:(UIView *)view;
+//
+//@end
 
-
-@interface toolBarBaseView : UIView 
+@interface toolBarBaseView : UIView
+//@property (nonatomic,strong)id<AddViewDelegate>addViewDelegate;
 - (void)layout;
 
 @end

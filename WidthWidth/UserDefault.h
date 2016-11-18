@@ -10,5 +10,6 @@
 
 @interface UserDefault : NSObject
 @property (nonatomic,assign) BOOL record;
+@property (nonatomic,retain) NSArray *btnPicArr;
 + (UserDefault *)shareUser;
 @end

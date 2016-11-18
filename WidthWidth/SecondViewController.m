@@ -12,19 +12,19 @@
 #import <Photos/Photos.h>
 #import <CoreMedia/CMMetadata.h>
 #import <GLKit/GLKit.h>
-#import "FontView.h"
 #import "UIView+CCHUD.h"
 #import "CCTools+GIF.h"
 #import "TakePictureViewController.h"
 #import <CoreMotion/CoreMotion.h>
-//#import "MAMapView.h"
 #import <MAMapKit/MAMapKit.h>
-
-
-
+#import "FunctionView.h"
+/*
+ 屏幕横向后 原点为横屏左上角，但宽度和高度仍然是原来frame宽高，不会随着横屏自动改变宽度高度
+ */
 #define kMainScreenWidth [UIScreen mainScreen].bounds.size.width
 #define kMainScreenHeight  [UIScreen mainScreen].bounds.size.height
 static CGRect oldframe;
+static CGRect oldMapframe;
 static int _tapCount;
 @interface SecondViewController ()<UIGestureRecognizerDelegate,AVCaptureVideoDataOutputSampleBufferDelegate,AVCaptureAudioDataOutputSampleBufferDelegate,MAMapViewDelegate> {
     NSArray *_toolBarArray;
@@ -34,12 +34,13 @@ static int _tapCount;
     toolBarBaseView *toolBarLeft;
     toolBarBaseView *toolBarRight;
     toolBarBaseView *toolBarBottom;
-    FontView *fontView;
-    //添加个后视图
-    UIView *backgroundView;
-    //添加个临时预览层
-    AVCaptureVideoPreviewLayer *tempPreviewLayer;
     
+    //功能
+    FunctionView *fucView;
+//    FontView *fontView;
+    UIView *fontView;
+//    //添加个后视图
+//    UIView *backgroundView;
 }
 
 
@@ -101,8 +102,6 @@ static int _tapCount;
     [self createCama];
     // 创建4个toolbar
     [self toolBarCreate];
-    
-    
     //添加消息中心 处理Tool里面button点击事件
     [self notifitionSet];
     //通过设备的移动(motionManager)判断设备的方向
@@ -119,6 +118,70 @@ static int _tapCount;
     [stopRecording addObserver:self selector:@selector(stopRecording:) name:@"stopRecording" object:nil];
     NSNotificationCenter *takePictureImage = [NSNotificationCenter defaultCenter];
     [takePictureImage addObserver:self selector:@selector(takePictureImage:) name:@"takePictureImage" object:nil];
+    //收起toolBarView
+    NSNotificationCenter *putToolBarViewAway = [NSNotificationCenter defaultCenter];
+    [putToolBarViewAway addObserver:self selector:@selector(putToolBarViewAway:) name:@"putToolBarViewAway" object:nil];
+    //放下toolBarView ToolBarViewLayDown
+    NSNotificationCenter *ToolBarViewLayDown = [NSNotificationCenter defaultCenter];
+    [ToolBarViewLayDown addObserver:self selector:@selector(ToolBarViewLayDown:) name:@"ToolBarViewLayDown" object:nil];
+}
+#pragma mark - 放下toolbarview 隐藏功能tableView
+- (void)ToolBarViewLayDown:(NSNotification *)noti {
+    [UIView animateWithDuration:1 animations:^{
+        CGPoint topPoint = toolBarTop.center;
+        topPoint.y += toolBarTop.frame.size.height;
+        toolBarTop.center = topPoint;
+        
+        CGPoint rightPoint = toolBarRight.center;
+        rightPoint.x -= toolBarRight.frame.size.width;
+        [toolBarRight setCenter:rightPoint];
+        
+        CGPoint bottomPoint = toolBarBottom.center;
+        bottomPoint.y -= toolBarBottom.frame.size.height;
+        [toolBarBottom setCenter:bottomPoint];
+        
+        CGPoint fontViewPoint = fontView.center;
+        fontViewPoint.y -= fontView.frame.size.height + 20;
+        [fontView setCenter:fontViewPoint];
+        
+        CGPoint fucViewPoint = fucView.center;
+        fucViewPoint.x += fucView.frame.size.width;
+        [fucView setCenter:fucViewPoint];
+        toolBarLeft.hidden = NO;
+        
+    } completion:^(BOOL finished) {
+    }];
+}
+#pragma mark - 收起toolbarView 显示功能tableView
+- (void)putToolBarViewAway:(NSNotification *)noti {
+    
+    [UIView animateWithDuration:1 animations:^{
+        CGPoint topPoint = toolBarTop.center;
+        topPoint.y -= toolBarTop.frame.size.height;
+        toolBarTop.center = topPoint;
+        
+        CGPoint rightPoint = toolBarRight.center;
+        rightPoint.x += toolBarRight.frame.size.width;
+        [toolBarRight setCenter:rightPoint];
+        
+        CGPoint bottomPoint = toolBarBottom.center;
+        bottomPoint.y += toolBarBottom.frame.size.height;
+        [toolBarBottom setCenter:bottomPoint];
+        
+        CGPoint fontViewPoint = fontView.center;
+        fontViewPoint.y += fontView.frame.size.height + 20;
+        [fontView setCenter:fontViewPoint];
+        
+        CGPoint fucViewPoint = fucView.center;
+        fucViewPoint.x -= fucView.frame.size.width;
+        [fucView setCenter:fucViewPoint];
+        toolBarLeft.hidden = YES;
+        
+        NSNotificationCenter *tableViewClickAtOne = [NSNotificationCenter defaultCenter];
+        [tableViewClickAtOne postNotificationName:@"tableViewClickAtOne" object:nil];
+        
+    } completion:^(BOOL finished) {
+    }];
 }
 #pragma mark - 通过设备的移动(motionManager)判断设备的方向
 - (void)createMotionManager {
@@ -135,7 +198,6 @@ static int _tapCount;
 - (void)handleDeviceMotion:(CMDeviceMotion *)deviceMotion{
     double x = deviceMotion.gravity.x;
     double y = deviceMotion.gravity.y;
-    NSLog(@"%f,%f",x,y);
     //求浮点数x的绝对值 C语言
     if (fabs(y) >= fabs(x))
     {
@@ -160,6 +222,9 @@ static int _tapCount;
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
+    [self startLocation];
+}
+- (void)startLocation {
     // 开启定位
     self.mapView.showsUserLocation = YES;
     self.mapView.userTrackingMode = MAUserTrackingModeFollow;
@@ -191,6 +256,7 @@ static int _tapCount;
     //创建4个toolBar
     _toolBarArray = @[@"toolBarTop",@"toolBarLeft",@"tooBarBottom",@"toolBarRight"];
     toolBarTop = [[NSClassFromString(_toolBarArray[0]) alloc] initWithFrame:CGRectMake(0, 0, kMainScreenHeight, 50)];
+//    toolBarTop.addViewDelegate = self;
     toolBarLeft = [[NSClassFromString(_toolBarArray[1]) alloc] initWithFrame:CGRectMake(0, 50, 50,kMainScreenWidth - 150)];
     toolBarBottom = [[NSClassFromString(_toolBarArray[2]) alloc] initWithFrame:CGRectMake(0, kMainScreenWidth - 100, kMainScreenHeight, 100)];
     toolBarRight = [[NSClassFromString(_toolBarArray[3]) alloc] initWithFrame:CGRectMake(kMainScreenHeight - 50,50, 50, kMainScreenWidth - 150)];
@@ -198,67 +264,79 @@ static int _tapCount;
     [self.view addSubview:toolBarRight];
     [self.view addSubview:toolBarLeft];
     [self.view addSubview:toolBarBottom];
-    
-    
     //创建前视图
-    fontView = [[FontView alloc] initWithFrame:CGRectMake(20, kMainScreenWidth - 120, kMainScreenHeight / 4, 100)];
+    fontView = [[UIView alloc] initWithFrame:CGRectMake(20, kMainScreenWidth - 120, kMainScreenHeight / 4, 100)];
     [self.view addSubview:fontView];
+    //fontView添加地图
+    self.mapView = [[MAMapView alloc] initWithFrame:CGRectMake(0, 0, fontView.frame.size.width, fontView.frame.size.height)];
+    oldMapframe = self.mapView.frame;
+    self.mapView.delegate = self;
+    [fontView addSubview:self.mapView];
+    self.mapView.userInteractionEnabled = NO;
+    fontView.userInteractionEnabled = YES;
+    
+    //创建功能fuctionView
+    fucView = [[FunctionView alloc] initWithFrame:CGRectMake(kMainScreenHeight,0, kMainScreenHeight / 3 * 2, kMainScreenWidth)];
+    NSLog(@"FontVIew%f,%f",kMainScreenHeight / 3 * 2,kMainScreenWidth);
+    [self.view addSubview:fucView];
+    
 //    给前视图添加手势
         UITapGestureRecognizer *tap=[[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(showImage:)];
         [fontView addGestureRecognizer: tap];
-        fontView.userInteractionEnabled = YES;
     
-    self.mapView = [[MAMapView alloc] initWithFrame:fontView.frame];
-    self.mapView.delegate = self;
-    self.mapView.backgroundColor = [UIColor greenColor];
-    [self.view addSubview:_mapView];
-    [self.view insertSubview:_mapView aboveSubview:fontView];
-    self.mapView.userInteractionEnabled = YES;
 
 }
+/*
+ 子视图从父视图移除，仍存在
+ */
 - (void)showImage:(UITapGestureRecognizer*)tap{
     _tapCount++;
-    //创建小的预览层
-    tempPreviewLayer = self.previewLayer;
-    if (_tapCount %2 != 0) {
-        backgroundView = [[UIView alloc] init];
-        backgroundView = [fontView copy];
-        [self.view addSubview:backgroundView];
-        [fontView.layer addSublayer:tempPreviewLayer];
-        
-        //返回当前视图的point
-        NSLog(@"%f,%f,%f,%f",oldframe.origin.x,oldframe.origin.y,oldframe.size.width,oldframe.size.height);
-        [self.view bringSubviewToFront:toolBarTop];
-        [self.view bringSubviewToFront:toolBarBottom];
-        [self.view bringSubviewToFront:toolBarLeft];
-        [self.view bringSubviewToFront:toolBarRight];
-        [self.view bringSubviewToFront:fontView];
-        NSLog(@"all subviews of self.view:%@",[self.view subviews]);
+    
+    if (_tapCount % 2 != 0) {
+        [fontView.layer addSublayer:self.previewLayer];
+        [self.mapView removeFromSuperview];
+        self.mapView.userInteractionEnabled = YES;
         
         [UIView animateWithDuration:0.3 animations:^{
-            backgroundView.frame = CGRectMake(0,0, kMainScreenWidth, kMainScreenHeight);
-            tempPreviewLayer.frame = CGRectMake(0,0, fontView.frame.size.width,fontView.frame.size.height);
+            self.mapView.frame = CGRectMake(0,0, kMainScreenWidth, kMainScreenHeight);
+            [self.view addSubview:self.mapView];
+            //地图放大后禁止照相
+            [self bringToolBarAndFontViewToFontExceptRightTool];
+            toolBarRight.hidden = YES;
+            self.previewLayer.frame = CGRectMake(0,0, fontView.frame.size.width,fontView.frame.size.height);
+            [self startLocation];
+            
         } completion:^(BOOL finished) {
             
         }];
     }else {
         
-        [tempPreviewLayer removeFromSuperlayer];
+        [self.previewLayer removeFromSuperlayer];
         self.previewLayer.frame = oldframe;
         [self.view.layer addSublayer:self.previewLayer];
-        [self.view bringSubviewToFront:toolBarTop];
-        [self.view bringSubviewToFront:toolBarBottom];
-        [self.view bringSubviewToFront:toolBarLeft];
-        [self.view bringSubviewToFront:toolBarRight];
-        [self.view bringSubviewToFront:fontView];
+        [self bringToolBarAndFontViewToFontExceptRightTool];
+        toolBarRight.hidden = NO;
+        self.mapView.userInteractionEnabled = NO;
         
         [UIView animateWithDuration:0.3 animations:^{
-            [backgroundView removeFromSuperview];
-            backgroundView = nil;
+            [self.mapView removeFromSuperview];
+            self.mapView.frame = oldMapframe;
+            self.mapView.delegate = self;
+            [fontView addSubview:self.mapView];
+            [self startLocation];
         } completion:^(BOOL finished) {
         }];
         
     }
+    
+}
+- (void)bringToolBarAndFontViewToFontExceptRightTool {
+    [self.view bringSubviewToFront:toolBarTop];
+    [self.view bringSubviewToFront:toolBarBottom];
+    [self.view bringSubviewToFront:toolBarLeft];
+    [self.view bringSubviewToFront:toolBarRight];
+    [self.view bringSubviewToFront:fontView];
+    [self.view bringSubviewToFront:fucView];
     
 }
 - (void)hideView:(UITapGestureRecognizer*)tap {
@@ -279,7 +357,7 @@ static int _tapCount;
     }
 }
 // 拍照
-#pragma mark - 拍照
+#pragma mark - 拍照 
 -(void)takePictureImage{
     AVCaptureConnection *connection = [_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
     //*********************************************
@@ -512,8 +590,6 @@ static int _tapCount;
         _recording = YES;
         UserDefault *user = [UserDefault shareUser];
         user.record = _recording;
-//        NSNotificationCenter *recordingY = [NSNotificationCenter defaultCenter];
-//        [recordingY postNotificationName:@"recordingY" object:[NSString stringWithFormat:@"%d",_recording]];
     });
 }
 
@@ -602,12 +678,12 @@ static int _tapCount;
             if (status == PHAuthorizationStatusAuthorized) {
                 [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
                     
-                    if (isSaveGif) {
-                        // 保存GIF
-                        NSData *data = [[NSData alloc]initWithContentsOfURL:GifURL];
-                        PHAssetCreationRequest *gifRequest = [PHAssetCreationRequest creationRequestForAsset];
-                        [gifRequest addResourceWithType:PHAssetResourceTypePhoto data:data options:nil];
-                    }
+//                    if (isSaveGif) {
+//                        // 保存GIF
+//                        NSData *data = [[NSData alloc]initWithContentsOfURL:GifURL];
+//                        PHAssetCreationRequest *gifRequest = [PHAssetCreationRequest creationRequestForAsset];
+//                        [gifRequest addResourceWithType:PHAssetResourceTypePhoto data:data options:nil];
+//                    }
                     
                     
                     // 保存视频
@@ -782,7 +858,10 @@ static int _tapCount;
     _videoConnection.videoOrientation = self.referenceOrientation;
     [_session commitConfiguration];
 }
-
+#pragma mark - 添加viewDelegate
+//- (void)secControllerAddSubView:(UIView *)view {
+//    [self.view addSubview:view];
+//}
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.

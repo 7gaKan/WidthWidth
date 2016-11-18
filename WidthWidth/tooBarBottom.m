@@ -31,8 +31,4 @@
 //    lb.userInteractionEnabled = YES;
 }
 
-- (void)showImage:(UITapGestureRecognizer*)tap{
-    NSLog(@"ok");
-    NSLog(@"3888%f,%f,%f,%f",self.frame.origin.x,self.frame.origin.y,self.frame.size.width,self.frame.size.height);
-}
 @end
